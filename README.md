@@ -189,3 +189,30 @@ The zero-shot Groq baseline performed better than the fine-tuned DistilBERT mode
 The fine-tuned model did not outperform the zero-shot baseline. Instead, it over-predicted `analysis`, correctly catching all true `analysis` examples but failing completely on `hot_take`. This suggests that the model learned surface-level basketball language as a signal for analysis, rather than learning the deeper boundary between a supported argument and an unsupported claim.
 
 This is an important failure mode because `analysis` and `hot_take` often use similar NBA vocabulary. A short unsupported claim like “Giannis is the much better two-way player” contains basketball reasoning words, but it does not actually explain the claim. The model likely needed more training examples that explicitly contrast unsupported basketball claims with genuinely reasoned comments.
+
+
+## Reflection: What the Model Learned vs. What I Intended
+
+I intended the model to learn the difference between three types of r/nba discourse: reasoned basketball analysis, unsupported hot takes, and emotional reactions. The ideal model would not simply look for basketball vocabulary, but would judge whether the comment actually supports its claim.
+
+The fine-tuned model did not fully learn that distinction. It seemed to learn that comments mentioning players, teams, coaches, stats, assists, defense, or salary-cap concepts were usually `analysis`. Because of that, it over-predicted `analysis` and failed to identify many `hot_take` and `reaction` examples.
+
+The biggest gap was between `analysis` and `hot_take`. A comment like “Rob Pelinka doesn't know the salary cap” contains basketball/front-office vocabulary, but it is still an unsupported claim. The model treated that type of language as analytical even when there was no reasoning behind it.
+
+If I improved this project, I would collect more borderline examples that contrast unsupported basketball claims with genuinely reasoned comments. I would also collect more short `analysis` examples and more basketball-specific `hot_take` examples so the model learns that topic-specific vocabulary alone is not enough.
+
+## Spec Reflection
+
+The planning spec helped guide the project by forcing me to define the labels before collecting the full dataset. This made annotation more consistent because I had a clear rule: `analysis` required actual reasoning, while `hot_take` was a strong claim without enough support.
+
+One way the implementation diverged from the spec is that the fine-tuned model did not reach the original success goal of around 70% accuracy. Instead, the zero-shot Groq baseline performed much better than the fine-tuned DistilBERT model. I kept the result because it honestly revealed an important limitation: with only 200 examples, a small fine-tuned model struggled to learn a subjective discourse boundary that a larger instruction-following model handled better.
+
+## AI Usage
+
+I used AI assistance in several parts of this project.
+
+First, I used AI to help stress-test and refine the label definitions. The AI helped generate and discuss borderline cases, especially examples that could be confused between `analysis` and `hot_take`. I revised the rules so that `analysis` required actual reasoning or evidence, not just basketball vocabulary.
+
+Second, I used AI to help organize and label public r/nba examples into the dataset format. I reviewed the labels and kept the annotation rules consistent with my planning document. The labels were not treated as automatic ground truth; I checked them against the definitions while building the dataset.
+
+Third, I used AI to help analyze the model’s wrong predictions. After the fine-tuned model over-predicted `analysis`, I used the wrong-prediction list to identify the main pattern: the model was relying too heavily on surface-level NBA vocabulary instead of detecting whether a comment actually explained a claim.
