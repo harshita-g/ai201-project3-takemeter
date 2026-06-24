@@ -115,6 +115,44 @@ Baseline prompt rules included:
 
 ## Evaluation Results
 
+### Fine-Tuned Model Confusion Matrix
+
+Rows are true labels. Columns are predicted labels.
+
+| True Label | Predicted `analysis` | Predicted `hot_take` | Predicted `reaction` |
+|---|---:|---:|---:|
+| `analysis` | 11 | 0 | 0 |
+| `hot_take` | 8 | 0 | 0 |
+| `reaction` | 9 | 0 | 2 |
+
+The confusion matrix shows that the fine-tuned model heavily over-predicted `analysis`. It correctly classified all 11 true `analysis` examples, but it misclassified all 8 `hot_take` examples as `analysis`. It also misclassified 9 of 11 `reaction` examples as `analysis`.
+
+This suggests the model learned to associate NBA-related vocabulary with `analysis`, even when the comment was actually an unsupported opinion or emotional reaction. The model did not learn a strong boundary between a reasoned basketball argument and a surface-level basketball claim.
+
+### Wrong Prediction Analysis
+
+The fine-tuned model made 17 wrong predictions out of 30 test examples. Most of the errors followed the same pattern: the model predicted `analysis` for comments that were actually `hot_take` or `reaction`.
+
+| Example | True Label | Predicted Label | Why It Failed |
+|---|---|---|---|
+| “Last years Rockets with Curry and no Harden might not even make the playoffs” | `hot_take` | `analysis` | The model likely treated the mention of specific teams and players as analytical. However, the comment is a hypothetical claim with no explanation or evidence, so it fits `hot_take`. |
+| “Dang wtf that was such a short interview and for some commercials lmfao, god I hate espn” | `reaction` | `analysis` | The model may have focused on the criticism of broadcast coverage, but the comment is mostly emotional frustration and live-event reaction. |
+| “Yet he bleeds points on the other end so those 4 extra assist is a wash.” | `hot_take` | `analysis` | This sounds basketball-specific because it mentions defense and assists, but it does not explain or support the claim enough to count as analysis. |
+| “Mike Brown drew up some shit not seen since Picasso on that play” | `reaction` | `analysis` | The phrase refers to a play design, which may have pushed the model toward `analysis`, but the actual comment is a joke/reaction. |
+| “Rob Pelinka doesn't know the salary cap.” | `hot_take` | `analysis` | The model likely associated salary-cap vocabulary with analysis, but the comment is a blunt unsupported claim. |
+
+The main error pattern is that the model relied too much on surface-level NBA vocabulary. Mentions of teams, players, coaches, assists, defense, or salary-cap terms often caused the model to predict `analysis`, even when the comment did not provide real reasoning. This shows that the model did not fully learn the distinction between “basketball-related language” and “reasoned basketball argument.”
+
+### Sample Classifications
+
+| Comment | Predicted Label | Confidence | Notes |
+|---|---|---:|---|
+| “Giannis averaged 30/12/6 on 60 fg 62.5 TS” | `analysis` | 0.37 | This prediction is reasonable because the comment uses specific statistics to compare a player. |
+| “Last years Rockets with Curry and no Harden might not even make the playoffs” | `analysis` | 0.37 | This prediction was wrong. The comment mentions teams and players, but it is still an unsupported hypothetical claim, so the true label is `hot_take`. |
+| “Dang wtf that was such a short interview and for some commercials lmfao, god I hate espn” | `analysis` | 0.37 | This prediction was wrong. The comment is mainly emotional frustration, so the true label is `reaction`. |
+| “Yet he bleeds points on the other end so those 4 extra assist is a wash.” | `analysis` | 0.39 | This prediction was wrong. It uses basketball language, but the claim is not explained enough to be `analysis`. |
+
+
 ### Overall Accuracy
 
 | Model | Accuracy |
